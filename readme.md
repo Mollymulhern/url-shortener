@@ -1,105 +1,83 @@
-# Link
+# URL Shortener
 
-A full-stack web application built with React and Express.js.
-
-## Tech Stack
-
-- **Frontend:** React
-- **Backend:** Node.js and Express.js
-- **Package manager:** npm
+A small full-stack URL shortener built with React and Express. Create compact links, view recently created links, and follow a short code back to its original destination.
 
 ## Project Structure
 
 ```text
 .
-├── client/     # React application
-└── server/     # Express API
+├── client/          # React application
+├── server/          # Express API and link storage
+├── tests/           # Live API contract tests
+└── docs/API.md      # Endpoint reference
 ```
 
-## Prerequisites
+## Requirements
 
-Before getting started, install:
-
-- [Node.js](https://nodejs.org/) (LTS version recommended)
-- npm (included with Node.js)
+- Node.js 20.12 or newer
+- npm
 
 ## Getting Started
 
 1. Clone the repository and enter the project directory:
 
    ```bash
-   git clone <repository-url>
-   cd link
+   git clone https://github.com/Mollymulhern/url-shortener.git
+   cd url-shortener
    ```
 
-2. Install the backend dependencies:
+2. Install both applications:
 
    ```bash
-   cd server
-   npm install
+   npm run install:all
    ```
 
-3. Install the frontend dependencies:
-
-   ```bash
-   cd ../client
-   npm install
-   ```
-
-4. Create the required environment files. For example:
+3. Create `server/.env` if you need to override local settings:
 
    ```env
    # server/.env
    PORT=5000
+   BASE_URL=http://localhost:5000
+   CORS_ORIGINS=http://localhost:5173
    ```
 
-   Add any database credentials, API keys, or other project-specific settings required by the application. Do not commit `.env` files.
+   Do not commit `.env` files or credentials.
 
-5. Start the Express server:
+4. Start the API:
 
    ```bash
-   cd server
-   npm run dev
+   npm run dev:server
    ```
 
-6. In a second terminal, start the React development server:
+5. In a second terminal, start the UI:
 
    ```bash
-   cd client
-   npm run dev
+   npm run dev:client
    ```
 
 Open the local URL shown by the React development server in your browser.
 
-## Available Scripts
+## Commands
 
-Run these commands from the relevant `client` or `server` directory:
+- `npm run build` — create the production frontend bundle.
+- `npm test` — run backend, frontend, and integration tests.
+- `npm run lint` — lint both applications.
+- `npm run test:integration` — check a running API against its public contract.
 
-- `npm run dev` — starts the development server.
-- `npm run build` — creates a production frontend build.
-- `npm start` — starts the application in production mode.
-- `npm test` — runs the test suite.
-
-The exact scripts available are defined in each directory's `package.json` file.
-
-## Production
-
-Build the React application with:
+The integration tests skip when no live API is configured. Start the backend, then run:
 
 ```bash
-cd client
-npm run build
+TEST_BASE_URL=http://localhost:5000 npm run test:integration
 ```
 
-Configure Express to serve the generated frontend files, or deploy the frontend and API separately. Set production environment variables through your hosting provider.
+See [docs/API.md](docs/API.md) for endpoint details and examples.
 
 ## Contributing
 
-1. Create a branch for your change.
-2. Make and test your changes.
-3. Commit with a clear message.
-4. Open a pull request.
+Create a focused branch, include tests with behavior changes, and run the relevant checks before opening a pull request. Use concise imperative commit subjects, such as `Add custom link validation`. Include screenshots for visible UI changes.
 
-## License
+## Deployment and storage
 
-Add the project's license here.
+The server loads `server/.env` automatically; existing environment variables take precedence. See `server/.env.example`. Set `NODE_ENV=production` and `BASE_URL` to the public HTTPS origin serving redirects. Set `CORS_ORIGINS` to the exact frontend origin (comma-separated if needed). Configure your host to serve `client/dist` and proxy `/api` to the API, with short-code paths routed to the API.
+
+Recent links are private to the browser profile and stored in localStorage (five maximum). There is no public listing endpoint. The API stores up to 10,000 links in memory, and accepts at most 60 creation attempts per minute globally per process. Links disappear on restart; use durable storage and shared limits before scaling. A full store rejects new links with 503 without removing existing redirects.
